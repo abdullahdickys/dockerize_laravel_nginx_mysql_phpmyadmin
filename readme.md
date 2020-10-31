@@ -1,72 +1,192 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
-
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Install laravel bisa dengan clone dari repo github atau lewat composer.saat blog ini dibuat saya menggunakan laravel versi 7
+composer create-project --prefer-dist laravel/laravel laravel_docker_project
+cd laravel_docker_project
+mkdir -p nginx/conf.d
+mkdir php
+setelah kita buat folder dengan perintah di atas kita lanjut untuk membuat beberapa file docker diantaranya 1. docker-compose.yml, 2. Dockerfile, 3. config nginx app.conf, 4. config php.ini
+oh ya untuk yang baru belajar docker dan belum mengerti dasar, mungkin link ini membantu sama seperti saya sebelum mengerti dasar docker disini.
+docker-compose.yml
+touch docker-compose.yml
+isi file docker-compose.yml seperti di bawah
+NB: jangan copypaste, usahakan ketik.
+version: '3'
+services:
+#PHP Service
+app:
+build:
+context: .
+dockerfile: Dockerfile
+image: php_service
+container_name: app
+restart: unless-stopped
+tty: true
+environment:
+SERVICE_NAME: app
+SERVICE_TAGS: dev
+working_dir: /var/www
+volumes:
+- ./:/var/www
+- ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+networks:
+- app-network
+#Nginx Service
+webserver:
+image: nginx:alpine
+container_name: webserver
+restart: unless-stopped
+tty: true
+ports:
+- "88:80"
+- "443:443"
+volumes:
+- ./:/var/www
+- ./nginx/conf.d/:/etc/nginx/conf.d/
+networks:
+- app-network
+#MySQL Service
+db:
+image: mysql
+container_name: db
+restart: unless-stopped
+tty: true
+ports:
+- "33061:3306"
+environment:
+MYSQL_DATABASE: laravel
+MYSQL_USER: amrilsyaifa
+MYSQL_PASSWORD: qwerty1234
+MYSQL_ROOT_PASSWORD: qwerty1234
+SERVICE_TAGS: dev
+SERVICE_NAME: mysql
+networks:
+- app-network
+#PHPMyAdmin Service
+phpmyadmin:
+container_name: phpmyadmin
+image: phpmyadmin/phpmyadmin
+ports:
+- "7000:80"
+links:
+- db:db
+environment:
+MYSQL_USER: amrilsyaifa
+MYSQL_PASSWORD: qwerty1234
+MYSQL_ROOT_PASSWORD: qwerty1234
+UPLOAD_LIMIT: 3000000000
+networks:
+- app-network
+#Docker Networks
+networks:
+app-network:
+driver: bridge
+#Volumes
+volumes:
+lbdata:
+driver: local
+2. Dockerfile
+touch Dockerfile
+isi file Dockerfile seperti di bawah ini
+FROM php:7.2-fpm
+# Copy composer.lock and composer.json
+COPY composer.lock composer.json /var/www/
+# Set working directory
+WORKDIR /var/www
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+build-essential \
+libmcrypt-dev \
+mariadb-client \
+libpng-dev \
+libjpeg62-turbo-dev \
+libfreetype6-dev \
+locales \
+zip \
+jpegoptim optipng pngquant gifsicle \
+vim \
+unzip \
+git \
+curl
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install extensions
+RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+RUN docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/
+RUN docker-php-ext-install gd
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Add user for laravel application
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
+# Copy existing application directory contents
+COPY . /var/www
+# Copy existing application directory permissions
+COPY --chown=www:www . /var/www
+# Change current user to www
+USER www
+# Expose port 9000 and start php-fpm server
+EXPOSE 9000
+CMD ["php-fpm"]
+3. app.conf
+touch nginx/conf.d/app.conf
+isi app.conf seperti di bawah ini
+server {
+listen 80;
+index index.php index.html;
+error_log  /var/log/nginx/error.log;
+access_log /var/log/nginx/access.log;
+root /var/www/public;
+location ~ \.php$ {
+try_files $uri =404;
+fastcgi_split_path_info ^(.+\.php)(/.+)$;
+fastcgi_pass app:9000;
+fastcgi_index index.php;
+include fastcgi_params;
+fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+fastcgi_param PATH_INFO $fastcgi_path_info;
+}
+location / {
+try_files $uri $uri/ /index.php?$query_string;
+gzip_static on;
+}
+}
+4. php.
+touch php/local.ini
+isi file local.ini seperti di bawah
+upload_max_filesize=40M
+post_max_size=40M
+max_execution_time = 180
+memory_limit = 3000M
+Jika sudah kita lanjut untuk build container dengan mengetik perintah di bawah
+docker-compose up -d
+jika image di dalam docker belum ada maka dia akan download di docker hub. pastikan tidak ada error dan ada keterangan done seperti gambar di bawah.
+Image for post
+ketik docker ps untuk melihat container yang sedang berjalan
+Image for post
+sekarang buka http://localhost:88/
+booommmmmm!!!!!
+Image for post
+berhasil,
+lanjut buka phpmyadmin http://localhost:7000/
+masukkan password, di sini saya menggunakan password yang di define di docker-compose.yml.
+sudah ada database dengan nama laravel sesuai yang kita define di atas.
+lanjut untuk menghubungkan database kita edit .env laravel
+docker-compose exec app vim .env
+ubah seperti di bawah
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=amrilsyaifa
+DB_PASSWORD=qwerty1234
+lakukan clear config dan cache dengan perintah di bawah
+docker-compose exec app php artisan config:clear
+docker-compose exec app php artisan cache:clear
+sebelum melakukan migrate ubah dahulu AppServiceProvider.php
+use Illuminate\Support\Facades\Schema;
+public function boot()
+{
+Schema::defaultStringLength(191);
+}
+lanjut migrate
+docker-compose exec app php artisan migrate
+boom….!!!
