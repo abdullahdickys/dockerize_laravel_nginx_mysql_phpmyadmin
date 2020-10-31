@@ -191,3 +191,4 @@ Schema::defaultStringLength(191);
 lanjut migrate
 docker-compose exec app php artisan migrate
 boom….!!!
+
