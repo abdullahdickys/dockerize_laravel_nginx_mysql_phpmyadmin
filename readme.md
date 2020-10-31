@@ -1,3 +1,4 @@
+di sini kita kan membuat docker yang berjalan dengan sebuah framework laravel.
 Install laravel bisa dengan clone dari repo github atau lewat composer.saat blog ini dibuat saya menggunakan laravel versi 7
 composer create-project --prefer-dist laravel/laravel laravel_docker_project
 cd laravel_docker_project
